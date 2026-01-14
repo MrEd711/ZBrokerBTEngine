@@ -1,0 +1,18 @@
+Using the yfinance library to integrate FTSE 100 into the program
+
+Subproblems:
+- The inputs/formatting that the program takes
+- The actual downloading of the data
+- Pandas to make a csv of correct formatting
+- adding option to the download window
+- option to choose ftse 100 for backtesting
+
+1. Downloading data to a csv
+- Downloaded whole FTSE
+- Reset all indexes
+2. Reformatting "DATE" datatype
+- currently datetime64[ns, Europe/London]
+
+
+
+TODO -> Fix tooltip with if statement to determine whether ETH or FTSE

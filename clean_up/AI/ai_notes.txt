@@ -1,0 +1,105 @@
+Method XGBoost GPU + PyTorch + Meta-model
+
+1. XGBoost (GPU) baseline on indicators + lags/rolling stats.
+2. Then add neural nets only where they add something. Incorporate meta-model to integrate them both for optimal results.
+
+Understanding XGBoost:
+
+### Prerequesits:
+- NVIDIA Driver
+- cuda toolkit; need cuda 11+ have 12.9
+- python 3.9 - 3.11; python 3.12 installed ## CHECK
+- libraries: pip install xgboost pandas numpy scikit-learn
+
+IMPORTANT:
+tree_method="gpu_hist"
+device="cuda"
+
+
+### What is XGBoost:
+XGBoost = Gradient Boosted Decision Trees
+
+You build many small decision trees
+
+Each new tree focuses on fixing the mistakes of the previous ones
+
+Final prediction = weighted sum of all trees
+
+It is not a neural net. It does not do backprop or layers.
+
+Why it’s deadly on indicators
+
+Indicators = tabular, nonlinear, noisy
+
+Trees:
+
+handle nonlinearity
+
+handle interactions
+
+don’t care about scaling
+
+tolerate missing values
+
+Boosting:
+
+concentrates on hard-to-predict market states
+
+### 5. Core jargon (you MUST know this)
+Booster
+
+The ensemble of trees
+
+Usually gbtree
+
+Tree depth (max_depth)
+
+How complex each tree can be
+
+Shallow = safer, deeper = overfitting risk
+
+Typical: 3–8
+
+Learning rate (eta)
+
+How much each tree contributes
+
+Lower = slower but safer
+
+Typical: 0.01–0.1
+
+Number of estimators (n_estimators)
+
+Number of trees
+
+More trees = more capacity
+
+Objective
+
+What you’re optimising:
+
+"binary:logistic" → up/down
+
+"reg:squarederror" → return prediction
+
+Loss
+
+Internal error metric:
+
+Log loss (classification)
+
+MSE (regression)
+
+Regularisation
+
+Critical for trading.
+
+subsample – fraction of rows per tree
+
+colsample_bytree – fraction of features per tree
+
+lambda – L2 regularisation
+
+alpha – L1 regularisation
+
+These prevent overfitting.

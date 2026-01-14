@@ -1,0 +1,126 @@
+NEXT STEPS
+
+-ALLOW THE CHART TO BE VIEWED IN MULTIPLE TIME FRAMES
+
+- Add a drop down menu into the window of the plot -> may require creating a child window for the plot and a main window??
+- Make the download CSV data more interactive
+- STEP BY STEP:
+1. make the download easier to use and pass those areguments in when making the CSV
+2. make sure that the plot window is in a child window in a window, so that there is a drop down menu
+3. integrate it all together
+
+
+
+
+- MAKE A LIVE CHART, MAY REQUIRE THREADING AND LARGE CPU USAGE TO BE CONSTANTLY COLLECTING DATA FROM BINANCE, WILL NEED A SEPERATE SCRIPT OR INTEGRATED INTO MAIN SCRIPT
+
+
+
+
+
+Plane fixes:
+
+
+- Place the strategy function into strats.py
+
+- Update the UI, make it as interactive as possible
+
+- Hard code new strategies
+
+
+
+UI CHANGES:
+
+- Regenerate chart with different coloured candles for buying and selling - requires DPG documentation
+
+
+
+- Create a scroll to bottom function
+- Create a button to regenerate the equity plot IF it exists
+
+
+- Add a progress bar - requires documentation
+- Plot EMA on chart
+- Fix CBS
+
+- Ploting EMA on chart:
+    - Use pandas to create EMA
+    - Plot it on the main chart, using DATE on the x axis and then the EMA values on the y axis, using a line graph.
+    - Place into state.ema_data_values which are computed when the CSV is loaded into the application.
+    - Plot it on the chart when the chart is generated.
+
+
+
+
+
+
+
+
+
+
+STRATEGY 1: TN 
+
+PROOF OF CONCEPT:
+
+- NO SL/TP ATM 
+- NO SLIPPAGE/ NO BROKER FEE 
+- IF CANDLE UP BUY NEXT CANDLE.
+- AND VICE VERSA.
+- CREATE CSV FOR TRADE RESULTS.
+- OUTPUT IN DPG TABLE AND DPG PLOT 
+
+ADD A FULL BACKTEST FUNCTIONAL WINDOW IN DPG RATHER THAN JUST MENU BUTTON. URGENT
+ADD A SEPERATE STATUS WINDOW FOR TRADES BEING TAKEN??
+
+
+
+
+
+
+
+OPTIONAL FIXES:
+Move globals into a state object
+
+Action: create class AppState: (csv_path, csv_data, sp500_df, selected_interval, etc.) and pass it around. This alone will simplify everything.
+
+What I would actually do next (my sequence)
+
+Fix bugs & normalisation (csv_path after download, interval mapping, solid subprocess paths).
+
+Introduce AppState + split modules (engine.py, strategies/, ui/plots.py, data/).
+
+Implement the backtest engine (positions → trades → equity → metrics). Keep it minimal but correct.
+
+Add SMA Crossover + RSI strategies to prove the pipeline.
+
+Results UI: tabs for Equity vs SPX, Trades table, Metrics panel, Export buttons.
+
+Parameter panel that auto‑renders from each strategy’s schema.
+
+Presets (save/load JSON) for quick iteration.
+
+FVG detector (first pass) and a simple ruleset to validate the idea.
+
+Resampling utils so you’re not re‑hitting Binance for every interval.
+
+Tests for PnL/metrics to lock in correctness before ML.
+
+DONE 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,13 @@
+Allowing saves & multiple plots on equity chart
+
+- There is no way to load lines but not show them
+
+- After each backtest save the results to a csv saved in "clean_up/backtest_saves" (pandas) done
+
+#dpg.delete_item("equity_series")
+#equity_plot(state) FIX THIS because lines duplicate on reload causing errors. Could skip past pre-loaded lines and only calculate new ones.
+
+
+- Fix exception sets in equity plots
+- Second backtest removes the first line and adds another buy and hold line
+

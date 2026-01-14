@@ -1,0 +1,29 @@
+TJR Trading Strat Simplified
+
+Assumptions:
+
+- No slippage 
+- No trading fees
+- Instantaneous buying and selling
+
+Strategy:
+
+- Calculate the simple moving average.
+- If below then only buying
+- If above then only selling
+
+- Identify 3 candle fair value gap in the correct direction
+- or 3 candle inverse fair value gap in the correct direction
+- RR 1:2, with the 2 in the predicted direction
+- The reward section should be 2/3rds of the way from the long/short entry to the SMA 
+
+
+
+
+- ADD ZBROKER done
+- TEST AI FUNCTIONS done
+- ADD AI STATUS BAR 2
+- UPDATE EQUITY PLOT done
+- ADD GREEKS PLOT 3
+- ALLOW MULTIPLE GRAPHS TO BE PLOTTED ON THE EQUITY PLOT - MAYBE SAVE BACKTESTS?? 1
+- FINALLY BUILD BASE AI MODEL 4
