@@ -22,3 +22,7 @@ These include (may be more) pandas, numpy, dearpygui, threading, ctypes, request
 A lot of these are pre-installed with python, but not all. 
 
 I recommend using a virtual environment.
+
+<img width="2559" height="1344" alt="Screenshot 2026-01-14 150649" src="https://github.com/user-attachments/assets/fa35a0e9-3453-4a35-ae3a-32b847863614" />
+
+Note it looks blurry because my computer is set to 125% zoom due to my monitor. Normal displays will look far crisper.
