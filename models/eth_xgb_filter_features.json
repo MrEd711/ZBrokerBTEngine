@@ -1,0 +1,23 @@
+[
+  "resid_z",
+  "rsi",
+  "atrp",
+  "adx4",
+  "slope4",
+  "close",
+  "fair",
+  "dist_fair_pct",
+  "candle_body_pct",
+  "candle_range_pct",
+  "upper_wick_frac",
+  "lower_wick_frac",
+  "ret_1",
+  "ret_4",
+  "ret_12",
+  "ret_48",
+  "side",
+  "is_trend_regime",
+  "trend_dir",
+  "hour",
+  "dow"
+]

@@ -6,14 +6,15 @@ from state import AppState
 from ui.charts import (
     generate_chart, tooltip_loop, weight_slider_cb, crosshair_cb,
     configure_main_plot_cb, sync_on_zoom_cb, chart_fullsize, settings_window,
+    switch_to_volume, switch_to_rsi, switch_to_roc, switch_to_macd,
 )
 from ui.statusbar import configure_status_bar_cb, add_text_status, bottom_status_backtest
-from actions.dataflow import on_load_csv, file_dialog_download_cb
+from actions.dataflow import on_load_csv, file_dialog_download_cb, quick_load_csv
 from actions.backtest import backtest_strategy, reload_equity_plot
-from AI.ai import load_data, train_model, create_features
+from AI.ml_xgb_filter import train_xgb_filter_model
 
 def build_ui(state: AppState):
-    #ctypes.windll.shcore.SetProcessDpiAwareness(2)  # For high DPI displays on Windows
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)  # For high DPI displays on Windows
     dpg.create_context()
     dpg.create_viewport(title="Backtesting Program", width=1200, height=900)
 
@@ -42,11 +43,18 @@ def build_ui(state: AppState):
             with dpg.plot(label="ETH/USD", tag="plot", height=-1, width=-1, no_menus=True, crosshairs=False):
                 dpg.add_plot_axis(dpg.mvXAxis, tag="x_axis", label="Date", scale=dpg.mvPlotScale_Time)
                 dpg.add_plot_axis(dpg.mvYAxis, tag="y_axis", label="Price")
-        with dpg.child_window(label="VOLUME", border=True, width=-1, height=0.3, tag="child_window_histo"):
+        with dpg.child_window(label="VOLUME", border=True, width=-1, height=0.3, tag="child_window_histo"): 
+            # Creating layout to select chart type
+            with dpg.group(horizontal=True):
+                dpg.add_button(label = "Volume", tag = "volume_select_button", callback = lambda: switch_to_volume(state))
+                dpg.add_button(label = "RSI", tag = "rsi_select_button", callback = lambda: switch_to_rsi(state))
+                dpg.add_button(label = "ROC", tag = "roc_select_button", callback = lambda: switch_to_roc(state))
+                dpg.add_button(label = "MACD", tag = "macd_select_button", callback = lambda: switch_to_macd(state))
+                dpg.add_button(label = "Fit axis", tag = "fit_axis_button",callback = lambda: (dpg.fit_axis_data("y_axis_indicators")))
             with dpg.plot(label="VOLUME", tag="volume_plot", height=-1, width=-1, no_menus=True, crosshairs=True):
-                dpg.add_plot_axis(dpg.mvXAxis, label="DATE", tag="x_axis_volume", scale=dpg.mvPlotScale_Time)
-                dpg.add_plot_axis(dpg.mvYAxis, label="VOLUME", tag="y_axis_volume")
-
+                dpg.add_plot_legend()
+                dpg.add_plot_axis(dpg.mvXAxis, label="DATE", tag="x_axis_indicators", scale=dpg.mvPlotScale_Time)
+                dpg.add_plot_axis(dpg.mvYAxis, label="VOLUME", tag="y_axis_indicators")
     # Main chart settings window
 
     with dpg.window(label = "Chart Settings", tag = "chart_settings", show=False, width=300, height=200):
@@ -56,6 +64,9 @@ def build_ui(state: AppState):
             dpg.add_checkbox(label = "Volume Chart", tag = "volume_chart_checkbox", source = "VolumeAxisChart")
         with dpg.tree_node(label = "Indicators", default_open=False):
             dpg.add_text("Indicator settings will go here.")
+            dpg.add_checkbox(label="Show RSI", tag="show_rsi_checkbox", default_value=False,
+                            callback=lambda s, a: dpg.configure_item("child_window_rsi", show=a))
+            # More indicators can be added here later
             dpg.add_input_int(label="EMA Period", default_value=state.ema_period, tag="ema_period_input") # This will need to be edited when re-opened
 
         dpg.add_button(label="Save and Close", tag = "save_and_close", callback=lambda s, a: settings_window(state, s, a) # Will need to save the EMA period and other settings (put into seperate function)
@@ -108,7 +119,7 @@ def build_ui(state: AppState):
                     dpg.add_button(label= "Load CSV", tag = "loadcsvai", callback = lambda: dpg.show_item("file_dialog_csv")) 
                     dpg.add_text(f"Current CSV: {str(state.csv_path)}", tag = "CSV_CURRENT_AI") # ADD NECESSARY VARIABLE WHICH CHANGES WHEN CSV IS LOADED
         dpg.add_text("AI Training Options will go here.") # Any parameters for training can be added when this is implemented
-        dpg.add_button(label="Start Training", callback=lambda:load_data(state)) # To be implemented
+        dpg.add_button(label="Start Training", callback=lambda:train_xgb_filter_model(state)) # To be implemented
         dpg.add_button(label="TBI...", callback=lambda: None) # To be implemented
         dpg.add_button(label="TBI...", callback=lambda: None) # To be implemented
     # Add text status bar
@@ -124,7 +135,7 @@ def build_ui(state: AppState):
         with dpg.child_window(label = "Strategy Selection", tag = "strategy_selection", height = 200, width = -1):
             with dpg.group(horizontal=False):
                 with dpg.group(horizontal = True):
-                    dpg.add_combo(("Please Select", "Simple Strategy", "Confluence Based Strategy", "SMA Crossover", "ZBroker"), default_value="Please Select", tag="strategy_combo", label = "Strategy Selection", width = 150)
+                    dpg.add_combo(("Please Select", "Simple Strategy", "Confluence Based Strategy", "SMA Crossover", "ZBroker", "ZBroker Real-World", "ZBroker speed", "Swing - New", "Swing - Backtested"), default_value="Please Select", tag="strategy_combo", label = "Strategy Selection", width = 150)
                 with dpg.group(horizontal = True):
                     dpg.add_button(label= "Load CSV", callback = lambda: dpg.show_item("file_dialog_csv")) 
                     dpg.add_text(f"Current CSV: {str(state.csv_path)}", tag = "CSV_CURRENT") # ADD NECESSARY VARIABLE WHICH CHANGES WHEN CSV IS LOADED
@@ -181,13 +192,15 @@ def build_ui(state: AppState):
 def run_event_loop():
     while dpg.is_dearpygui_running():
         if dpg.is_item_shown("chart"):
-            if dpg.does_item_exist("x_axis") and dpg.does_item_exist("x_axis_volume"):
+            if dpg.does_item_exist("x_axis") and dpg.does_item_exist("x_axis_indicators"):
                 x_min, x_max = dpg.get_axis_limits("x_axis")
-                dpg.set_axis_limits("x_axis_volume", x_min, x_max)
+                dpg.set_axis_limits("x_axis_indicators", x_min, x_max)
         dpg.render_dearpygui_frame()
     dpg.destroy_context()
+    # This is where I sync the charts. Take note for when I add the indicators.
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
     state = AppState()
     build_ui(state)
+    quick_load_csv(state)  # Load default CSV on startup
     run_event_loop()

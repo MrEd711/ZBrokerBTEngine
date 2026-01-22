@@ -8,6 +8,22 @@ Allowing saves & multiple plots on equity chart
 #equity_plot(state) FIX THIS because lines duplicate on reload causing errors. Could skip past pre-loaded lines and only calculate new ones.
 
 
-- Fix exception sets in equity plots
-- Second backtest removes the first line and adds another buy and hold line
+
+
+Adding indicators:
+
+state: ema data, and ema period
+dataflow holds the set ema fucntion
+ema calculations set in charts.py in main chart function and settings window
+make new script for calculating new indicators, including: RSI, MACD, ROC
+make new settings for it, shouldnt show automatically so only add to settings function
+need to add variables to state
+make new child windows for all as they are not on-chart indicators
+- might have to make a button to switch between volume chart and other indicator charts.
+- OR i could change the ratios in the chart resize callback, checks whether the charts are there and then adjusts accordingly. - Incorporate the call back into the save and close button.
+
+
+- apply strategy to both eth and other crypto currencies?
+
+around 3300 lines of code so far
 

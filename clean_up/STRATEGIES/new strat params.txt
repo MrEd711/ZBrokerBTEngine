@@ -1,0 +1,15 @@
+[Batch 820] Completed 6560/6561 | Current best Total PnL: $+13608.57
+
+============================================================
+BEST RESULT
+============================================================
+Total PnL:      $+13608.57
+Final Balance:  $113608.57
+Trades:         317
+Win Rate:       45.1%
+Max Drawdown:   12.27%
+TP Floor:       0.640%
+------------------------------------------------------------
+Params:
+SweepParams(adx_trend_threshold=20.0, slope_trend_threshold=0.1, trend_z_entry=1.0, range_z_extreme=2.4, trend_rsi_reclaim=46.0, k_sl=0.9, k_tp=0.8, tp_floor_base=0.006, max_hold_trend=48, max_hold_range=24)       
+============================================================

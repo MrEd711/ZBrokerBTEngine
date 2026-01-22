@@ -71,7 +71,7 @@ def generate_chart(state: AppState):
 
 
 
-    dpg.add_stem_series(x, v, parent="y_axis_volume", tag="volume_stem")
+    dpg.add_stem_series(x, v, parent="y_axis_indicators", tag="volume_stem")
 
     if not dpg.does_item_exist("candle_tip"):
         with dpg.tooltip("candles", tag="candle_tip"):
@@ -144,9 +144,9 @@ def configure_main_plot_cb():
 def sync_on_zoom_cb(sender, app_data):
     if sender == "x_axis":
         x_min, x_max = dpg.get_axis_limits("x_axis")
-        dpg.set_axis_limits("x_axis_volume", x_min, x_max)
-    elif sender == "x_axis_volume":
-        x_min, x_max = dpg.get_axis_limits("x_axis_volume")
+        dpg.set_axis_limits("x_axis_indicators", x_min, x_max)
+    elif sender == "x_axis_indicators":
+        x_min, x_max = dpg.get_axis_limits("x_axis_indicators")
         dpg.set_axis_limits("x_axis", x_min, x_max)
 
 def chart_fullsize(state, sender, app_data):
@@ -195,6 +195,111 @@ def settings_window(state, sender, app_data):
         dpg.set_value("ema_period_input", state.ema_period)
 
         dpg.show_item("chart_settings")
+# Edit
+def switch_to_volume(state: AppState):
+    """Display Volume indicator in the indicator plot"""
+    # Clear existing series
+    for tag in ("volume_stem", "rsi_line", "roc_line", "macd_line", "signal_line"):
+        if dpg.does_item_exist(tag):
+            dpg.delete_item(tag)
+    
+    if state.csv_data is None:
+        add_text_status(state, "No CSV loaded")
+        return
+    
+    df = ensure_time_col(state.csv_data)
+    df["Date"] = pd.to_datetime(df["Date"], utc=True, errors="coerce")
+    x = (pd.to_datetime(df["Date"]).values.astype("int64") // 10**9).tolist()
+    v = df["Volume"].tolist()
+    
+    dpg.add_stem_series(x, v, parent="y_axis_indicators", tag="volume_stem")
+    dpg.configure_item("y_axis_indicators", label="VOLUME")
+    dpg.fit_axis_data("x_axis_indicators")
+    dpg.fit_axis_data("y_axis_indicators")
+    add_text_status(state, "Switched to Volume")
+
+def switch_to_rsi(state: AppState):
+    """Display RSI indicator in the indicator plot"""
+    # Clear existing series
+    for tag in ("volume_stem", "rsi_line", "roc_line", "macd_line", "signal_line"):
+        if dpg.does_item_exist(tag):
+            dpg.delete_item(tag)
+    
+    if state.rsi_values is None:
+        add_text_status(state, "RSI data not available")
+        return
+    
+    # Use Date from state.rsi_values to match the length of RSI data
+    rsi_dates = pd.to_datetime(state.rsi_values["Date"], utc=True, errors="coerce")
+    x = (rsi_dates.values.astype("int64") // 10**9).tolist()
+    
+    # Get the RSI column (format: rsi_14 or rsi_<period>)
+    rsi_col = [col for col in state.rsi_values.columns if col.startswith("rsi_")][0]
+    rsi_y = state.rsi_values[rsi_col].tolist()
+    
+    dpg.add_line_series(x, rsi_y, parent="y_axis_indicators", tag="rsi_line", label="RSI")
+    dpg.configure_item("y_axis_indicators", label="RSI")
+    dpg.fit_axis_data("x_axis_indicators")
+    dpg.fit_axis_data("y_axis_indicators")
+    add_text_status(state, "Switched to RSI")
+
+def switch_to_roc(state: AppState):
+    """Display ROC indicator in the indicator plot"""
+    # Clear existing series
+    for tag in ("volume_stem", "rsi_line", "roc_line", "macd_line", "signal_line"):
+        if dpg.does_item_exist(tag):
+            dpg.delete_item(tag)
+    
+    if state.roc_values is None:
+        add_text_status(state, "ROC data not available")
+        return
+    
+    # Use Date from state.roc_values to match the length of ROC data
+    roc_dates = pd.to_datetime(state.roc_values["Date"], utc=True, errors="coerce")
+    x = (roc_dates.values.astype("int64") // 10**9).tolist()
+    
+    # Get the ROC column (format: roc_12 or roc_<period>)
+    roc_col = [col for col in state.roc_values.columns if col.startswith("roc_")][0]
+    roc_y = state.roc_values[roc_col].tolist()
+    
+    dpg.add_line_series(x, roc_y, parent="y_axis_indicators", tag="roc_line", label="ROC")
+    dpg.configure_item("y_axis_indicators", label="ROC")
+    dpg.fit_axis_data("x_axis_indicators")
+    dpg.fit_axis_data("y_axis_indicators")
+    add_text_status(state, "Switched to ROC")
+
+def switch_to_macd(state: AppState):
+    """Display MACD indicator in the indicator plot"""
+    # Clear existing series
+    for tag in ("volume_stem", "rsi_line", "roc_line", "macd_line", "signal_line"):
+        if dpg.does_item_exist(tag):
+            dpg.delete_item(tag)
+    
+    if state.macd_values is None:
+        add_text_status(state, "MACD data not available")
+        return
+    
+    # Use Date from state.macd_values to match the length of MACD data
+    macd_dates = pd.to_datetime(state.macd_values["Date"], utc=True, errors="coerce")
+    x = (macd_dates.values.astype("int64") // 10**9).tolist()
+    
+    # Get the MACD columns (format: macd_12_26_9, macd_signal_12_26_9, etc.)
+    macd_col = [col for col in state.macd_values.columns if col.startswith("macd_") and "signal" not in col and "hist" not in col][0]
+    signal_col = [col for col in state.macd_values.columns if col.startswith("macd_signal_")][0]
+    
+    add_text_status(state, state.macd_values.tail().to_string())  # Debug line to check MACD values
+
+    macd_y = state.macd_values[macd_col].tolist()
+    signal_y = state.macd_values[signal_col].tolist()
+    
+    dpg.add_line_series(x, macd_y, parent="y_axis_indicators", tag="macd_line", label="MACD", skip_nan=True)
+    dpg.add_line_series(x, signal_y, parent="y_axis_indicators", tag="signal_line", label="Signal", skip_nan=True)
+    dpg.configure_item("y_axis_indicators", label="MACD")
+    dpg.fit_axis_data("x_axis_indicators")
+    dpg.fit_axis_data("y_axis_indicators")
+    # Fit the axis data so it fits nicely:
+
+    add_text_status(state, "Switched to MACD")
 
 
 

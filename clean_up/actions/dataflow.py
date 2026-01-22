@@ -3,6 +3,7 @@ import sys, subprocess, pathlib, pandas as pd, dearpygui.dearpygui as dpg
 from state import AppState
 from ui.statusbar import add_text_status
 from actions.buy_hold_script import buy_and_hold_strategy
+from actions.indicators import update_all_indicators
 
 INTERVAL_MAP = {"1H":"1h","2H":"2h","4H":"4h"}
 
@@ -20,7 +21,14 @@ def on_load_csv(state: AppState, sender, app_data):
         state.csv_path = path
         state.csv_data = df
         set_ema_values(state, df)  # Set EMA values when loading CSV
+        ### Update indicators upon loading new CSV
+        update_all_indicators(state, True)
+        add_text_status(state, state.macd_values.head())
+        add_text_status(state, state.roc_values.head())
+        add_text_status(state, state.rsi_values.head())
+        ### End of update
         add_text_status(state, f"CSV loaded: {path.name}")
+        add_text_status(state, state.csv_data.head().to_string())
         dpg.set_value("CSV_CURRENT", f"Current CSV: {str(path.name)}")
     except Exception as e:
         add_text_status(state, f"Error loading CSV: {e}")
@@ -92,3 +100,23 @@ def file_dialog_download_cb(state: AppState, sender, app_data):
         interval_ui=state.selected_interval
     )
     # Edit to add POLUSDT
+
+def quick_load_csv(state:AppState):
+    csv_file = pathlib.Path("eth_5m.csv")
+    try:
+        df = pd.read_csv(csv_file)
+        state.csv_path = csv_file
+        state.csv_data = df
+        set_ema_values(state, df)  # Set EMA values when loading CSV
+        ### Update indicators upon loading new CSV
+        update_all_indicators(state, True)
+        add_text_status(state, state.macd_values.head())
+        add_text_status(state, state.roc_values.head())
+        add_text_status(state, state.rsi_values.head())
+        ### End of update
+        add_text_status(state, f"CSV loaded: {csv_file.name}")
+        add_text_status(state, state.csv_data.head().to_string())
+        dpg.set_value("CSV_CURRENT", f"Current CSV: {str(csv_file.name)}")
+        buy_and_hold_strategy(state)
+    except Exception as e:
+        add_text_status(state, f"Error loading CSV: {e}")

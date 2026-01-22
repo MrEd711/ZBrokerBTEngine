@@ -11,6 +11,7 @@ Features:
 from __future__ import annotations
 
 import time
+from tracemalloc import start
 from typing import Optional
 
 import numpy as np
@@ -75,7 +76,7 @@ def calc_volume_sma(volume: pd.Series, window: int = 20) -> pd.Series:
 # -----------------------------
 def zscore_strategy(state: AppState) -> pd.DataFrame:
     add_text_status(state, "Z-Score Strategy: Starting...")
-
+    start = time.time()
     # ---- Load & validate data ----
     try:
         if not hasattr(state, "csv_data") or state.csv_data is None:
@@ -182,7 +183,7 @@ def zscore_strategy(state: AppState) -> pd.DataFrame:
     bb_width_threshold = bb_width_valid.quantile(0.20) if not bb_width_valid.empty else 0.0
 
     starting_balance = 100000.0
-    trade_size = 1000.0
+    trade_size = 20000.0 # Edited
     leverage = 10.0
 
     add_text_status(state, f"Z-Score: Params set. BB width threshold: {bb_width_threshold:.2f}%")
@@ -507,7 +508,8 @@ def zscore_strategy(state: AppState) -> pd.DataFrame:
     losing_trades = sum(1 for p in trade_pnl if p < 0)
     win_rate = (winning_trades / total_trades * 100.0) if total_trades > 0 else 0.0
     total_pnl = float(np.nansum(trade_pnl)) if trade_pnl else 0.0
-
+    end = time.time()
+    add_text_status_backtest(state, f"Backtest completed in {end - start:.2f} seconds.")
     add_text_status_backtest(state, "=" * 50)
     add_text_status_backtest(state, "Z-SCORE STRATEGY SUMMARY")
     add_text_status_backtest(state, "=" * 50)

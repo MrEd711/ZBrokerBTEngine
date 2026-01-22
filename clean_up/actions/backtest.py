@@ -1,11 +1,17 @@
 # actions/backtest.py
 import sys, json, subprocess, pathlib, pandas as pd, dearpygui.dearpygui as dpg
+import pathlib
 from state import AppState
 from ui.statusbar import add_text_status
 from STRATEGIES.strategy_pt import simple_strategy, confluence_based_strategy, sma_crossover_strategy
 from ui.charts import generate_chart
 from STRATEGIES.zbroker_strat import zscore_strategy
 from STRATEGIES.calculate_metrics import metrics_df, compute_and_assign_all
+from STRATEGIES.zb_slip_and_tf import zscore_strategy_rw
+from STRATEGIES.z_backtest_engine_test import zscore_swing_optimised
+from STRATEGIES.newest_strategy_backtest import run_eth_swing_param_sweep
+from STRATEGIES.eth_swing_backtested import eth_swing_regime_strategy_best_ml
+
 
 def backtest_strategy(state: AppState, strategy_name: str):
 
@@ -23,14 +29,23 @@ def backtest_strategy(state: AppState, strategy_name: str):
         return
     elif strategy_name == "ZBroker":
         zscore_strategy(state)
+    elif strategy_name == "ZBroker Real-World":
+        zscore_strategy_rw(state)
+    elif strategy_name == "ZBroker speed":
+        zscore_swing_optimised(state)
+    elif strategy_name == "Swing - New":
+        run_eth_swing_param_sweep(state)
+    elif strategy_name == "Swing - Backtested":
+        eth_swing_regime_strategy_best_ml(state)
     else:
         add_text_status(state, "Error")
         return
     
+    csv_path_no_suffix = state.csv_path.stem  # removesuffix(".csv") workaround
 
     if state.save_csv_backtest:
         df = state.backtest_results
-        df.to_csv(f"clean_up/backtest_saves/backtest_results_{strategy_name}.csv", index=False) # Workaround
+        df.to_csv(f"clean_up/backtest_saves/backtest_results_{strategy_name}_{csv_path_no_suffix}.csv", index=False) # Workaround
         
         # If main chart is not shown then show the main chart
     if not dpg.is_item_shown("chart") and state.show_chart_main == True:
